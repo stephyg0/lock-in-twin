@@ -37,6 +37,7 @@ const chin = 152;
 const leftEyeOuter = 33;
 const rightEyeOuter = 263;
 const redirectSessionKey = "lock-in-twin-max-escalation-redirected";
+const minInsultsBeforeMaxEscalation = 5;
 let speechInProgress = false;
 
 function distance(a: Landmark, b: Landmark) {
@@ -188,6 +189,7 @@ export default function App() {
   const neutralSamplesRef = useRef(0);
   const neutralWidthTotalRef = useRef(0);
   const calloutLoadingRef = useRef(false);
+  const deliveredInsultsRef = useRef(0);
   const pendingRepeatCalloutRef = useRef(false);
   const redirectedRef = useRef(false);
   const smoothedScoreRef = useRef(0);
@@ -274,6 +276,7 @@ export default function App() {
           return false;
         }
 
+        deliveredInsultsRef.current += 1;
         setMessage(nextMessage);
         createAlertSound(nextSeverity);
         void controls.start({
@@ -341,6 +344,7 @@ export default function App() {
       neutralWidthRef.current = null;
       neutralSamplesRef.current = 0;
       neutralWidthTotalRef.current = 0;
+      deliveredInsultsRef.current = 0;
       smileCandidateStartedAt.current = null;
       smileStartedAt.current = null;
       pendingRepeatCalloutRef.current = false;
@@ -451,7 +455,11 @@ export default function App() {
             setSmileDuration(duration);
             setFocusScore((score) => clamp(score - (0.28 + nextSeverity * 0.62), 0, 100));
 
-            if (!redirectedRef.current && Math.ceil(nextSeverity * 10) >= 10) {
+            if (
+              !redirectedRef.current &&
+              deliveredInsultsRef.current >= minInsultsBeforeMaxEscalation &&
+              Math.ceil(nextSeverity * 10) >= 10
+            ) {
               redirectedRef.current = true;
               smileCandidateStartedAt.current = null;
               smileStartedAt.current = null;
