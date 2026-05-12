@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { ScanFace, ShieldAlert, Siren } from "lucide-react";
-import { FaceMesh } from "@mediapipe/face_mesh";
+import type { FaceMesh as FaceMeshClass } from "@mediapipe/face_mesh";
+
+declare global {
+  interface Window {
+    FaceMesh?: typeof FaceMeshClass;
+  }
+}
 
 type MonitorStatus = "booting" | "requesting" | "tracking" | "blocked" | "offline";
 
@@ -172,7 +178,7 @@ function StatusPill({ label, value, danger }: { label: string; value: string; da
 
 export default function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const faceMeshRef = useRef<FaceMesh | null>(null);
+  const faceMeshRef = useRef<FaceMeshClass | null>(null);
   const rafRef = useRef<number>();
   const streamRef = useRef<MediaStream | null>(null);
   const smileStartedAt = useRef<number | null>(null);
@@ -361,7 +367,11 @@ export default function App() {
         video.srcObject = stream;
         await video.play();
 
-        const faceMesh = new FaceMesh({
+        if (!window.FaceMesh) {
+          throw new Error("FaceMesh failed to load.");
+        }
+
+        const faceMesh = new window.FaceMesh({
           locateFile: (file) => `/mediapipe/face_mesh/${file}`,
         });
 
