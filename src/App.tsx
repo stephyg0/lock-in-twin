@@ -277,6 +277,7 @@ export default function App() {
         }
 
         deliveredInsultsRef.current += 1;
+        setViolations((count) => count + 1);
         setMessage(nextMessage);
         createAlertSound(nextSeverity);
         void controls.start({
@@ -445,7 +446,6 @@ export default function App() {
 
             if (smileStartedAt.current === null) {
               smileStartedAt.current = now;
-              setViolations((count) => count + 1);
               void triggerCallout(clamp(smoothedScore, 0.25, 1), [0, -12, 10, -7, 4, 0]);
             }
 
